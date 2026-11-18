@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment files
+.env
+*.env
+
+# Sensitive Configurations (Never commit real credentials)
+config.yaml
+config-other-account.yaml
+*/config.yaml
+*/config-other-account.yaml
+!*.example.yaml
+
+# Generated Reports & Raw Dumps
+reports/
+reports-other-account/
+cached_data.json
+*.log
+*.xlsx
+*.csv
+all_pods_*.csv
+
+# OS metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes

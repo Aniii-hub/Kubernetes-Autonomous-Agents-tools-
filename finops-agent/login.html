@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlock VistaEye Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f6fb;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --primary: #0047ab; /* Deep royal blue matching reference image */
+            --primary-hover: #00398a;
+            --success: #006c54; /* Rich green matching VistaEye */
+            --error: #ef4444;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --input-bg: #f8fafc;
+            --accent-glow: rgba(0, 71, 171, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* MagicUI Meteors Background Effect styling */
+        #meteor-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .meteor {
+            position: absolute;
+            width: 1.5px;
+            height: 1.5px;
+            border-radius: 50%;
+            background-color: #006c54; /* Match brand green/teal */
+            box-shadow: 0 0 0 1px rgba(0, 108, 84, 0.15);
+            transform: rotate(215deg);
+            opacity: 0;
+            animation: meteorAnimation linear infinite;
+        }
+        /* Meteor trail using pseudo element */
+        .meteor::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, #006c54, transparent);
+        }
+        @keyframes meteorAnimation {
+            0% {
+                transform: rotate(215deg) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            70% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: rotate(215deg) translateX(-800px);
+                opacity: 0;
+            }
+        }
+
+        /* Login Card */
+        .card {
+            width: 460px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 45px 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+            z-index: 10;
+            position: relative;
+            overflow: hidden;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .card.expanded {
+            width: 720px;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .brand h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: #232323; /* Matching logo color */
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand h1 span {
+            color: #006c54; /* Rich green matching logo */
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic; /* True Italic serif */
+        }
+
+        .brand p.subtitle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .brand p.subtitle::before,
+        .brand p.subtitle::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background-color: #006c54;
+            opacity: 0.3;
+        }
+
+        .brand p.subtitle::before {
+            margin-right: 12px;
+        }
+
+        .brand p.subtitle::after {
+            margin-left: 12px;
+        }
+
+        /* Tabs configuration */
+        .tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 14px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Forms styling */
+        .form-group {
+            margin-bottom: 22px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+
+        /* Icon Input Wrapper */
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .input-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid #cbd5e1;
+            padding: 13px 18px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .form-control.with-icon {
+            padding-left: 46px;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            background: var(--card-bg);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Buttons styling */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 71, 171, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(0, 71, 171, 0.25);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-test {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            float: right;
+            margin-top: -36px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .btn-test:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        /* Status & Alert banners */
+        .status-banner {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .status-banner.success {
+            display: block;
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+
+        .status-banner.error {
+            display: block;
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        .btn-test .spinner {
+            border-top-color: var(--primary);
+            border-color: rgba(0, 71, 171, 0.15);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Setup Grid Layout */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            max-height: 440px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        /* Custom Scrollbar for form */
+        .setup-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .setup-grid::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.03);
+        }
+        .setup-grid::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 3px;
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- MagicUI Meteors Background Effect -->
+    <div id="meteor-container"></div>
+
+    <div class="card" id="loginCard">
+        <div class="brand">
+            <!-- Precise SVG provided by user representing VistaEye -->
+            <svg viewBox="0 0 240 240" width="54" height="54" fill="none" style="flex-shrink: 0; margin-bottom: 16px;">
+                <path d="M240 124C240 141.673 225.673 156 208 156H204C181.373 156 170.059 156 163.029 163.029C156 170.059 156 181.373 156 204V240H124V220C124 174.745 124 152.117 138.059 138.059C152.118 124 174.745 124 220 124H240ZM116 20C116 65.2548 116 87.8825 101.941 101.941C87.8826 116 65.2549 116 20.0001 116H6.10352e-05C6.02626e-05 98.3269 14.3269 84 32.0001 84H36.0001C58.6275 84 69.9413 84.0001 76.9708 76.9707C84.0002 69.9413 84.0001 58.6274 84.0001 36V0H116V20ZM124 0C141.673 0 156 14.3269 156 32V36C156 58.6274 156 69.9413 163.029 76.9707C170.059 84.0001 181.373 84 204 84H240V116H220C174.745 116 152.118 116 138.059 101.941C124 87.8825 124 65.2548 124 20V0Z" fill="#232323"></path>
+                <path d="M116 240C98.3269 240 84 225.673 84 208L84 204C84 181.373 84.0001 170.059 76.9707 163.029C69.9413 156 58.6274 156 36 156L-7.34351e-06 156L-1.0141e-05 124L20 124C65.2548 124 87.8825 124 101.941 138.059C116 152.117 116 174.745 116 220L116 240Z" fill="#006c54"></path>
+            </svg>
+            <h1>Vista<span>Eye</span></h1>
+            <p class="subtitle">Cost Optimization Tool</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('login')">🔑 Access Portal</button>
+            <button class="tab-btn" onclick="switchTab('setup')">⚙️ Setup Engine</button>
+        </div>
+
+        <div id="statusBanner" class="status-banner"></div>
+
+        <!-- tab: LOGIN -->
+        <div id="tab-login" class="tab-content active">
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label id="usernameLabel" for="username">Username / Email Address</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                            </svg>
+                        </span>
+                        <input type="text" id="username" class="form-control with-icon" placeholder="dr.ramesh@vistaeye.com" required value="admin">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </span>
+                        <input type="password" id="password" class="form-control with-icon" placeholder="••••••••••••" required>
+                    </div>
+                </div>
+                <div class="form-group" id="confirmPasswordGroup" style="display: none;">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </span>
+                        <input type="password" id="confirm_password" class="form-control with-icon" placeholder="••••••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="btn" id="loginBtn">
+                    <div class="spinner" id="loginSpinner"></div>
+                    <span id="loginText">Sign In &rarr;</span>
+                </button>
+                <p id="toggleSignUpText" style="text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-muted); font-weight: 500;">
+                    Don't have an account? <a href="#" onclick="toggleSignUpFlow(event)" style="color: var(--primary); text-decoration: none; font-weight: 600;">Create one</a>
+                </p>
+            </form>
+        </div>
+
+        <!-- tab: SETUP -->
+        <div id="tab-setup" class="tab-content">
+            <form id="setupForm" onsubmit="handleSaveConfig(event)">
+                <div class="setup-grid">
+                    
+                    <!-- AWS SECRETS -->
+                    <div>
+                        <div class="section-title">AWS Infrastructure Credentials</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="aws_region">AWS Region</label>
+                                <input type="text" id="aws_region" class="form-control" placeholder="ap-south-1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button type="button" class="btn-test" style="float:none; margin-top:0; width:100%; padding:12px;" onclick="testConnection('aws')">
+                                    <div class="spinner" id="awsSpinner" style="display:inline-block; margin-right:6px; vertical-align:middle; width:12px; height:12px;"></div>
+                                    <span>Test AWS</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="aws_access_key">AWS Access Key ID</label>
+                            <input type="text" id="aws_access_key" class="form-control" placeholder="AKIA..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="aws_secret_key">AWS Secret Access Key</label>
+                            <input type="password" id="aws_secret_key" class="form-control" placeholder="••••••••••••••••••••••••" required>
+                        </div>
+                    </div>
+
+                    <!-- GRAFANA & PROMETHEUS -->
+                    <div>
+                        <div class="section-title">Grafana & Prometheus Endpoint</div>
+                        <div class="form-group">
+                            <label for="grafana_url">Grafana Base URL</label>
+                            <input type="text" id="grafana_url" class="form-control" placeholder="http://grafana-internal-elb:6868" required>
+                            <button type="button" class="btn-test" onclick="testConnection('grafana')">Test</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="grafana_username">Grafana Username</label>
+                                <input type="text" id="grafana_username" class="form-control" placeholder="admin">
+                            </div>
+                            <div class="form-group">
+                                <label for="grafana_password">Grafana Password</label>
+                                <input type="password" id="grafana_password" class="form-control" placeholder="••••••••">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LOKI (LOGGING) -->
+                    <div>
+                        <div class="section-title">Grafana Loki (Observability)</div>
+                        <div class="form-group">
+                            <label for="loki_url">Loki Endpoint URL (Optional)</label>
+                            <input type="text" id="loki_url" class="form-control" placeholder="http://loki-stack.monitoring:3100">
+                        </div>
+                    </div>
+
+                    <!-- LITELLM -->
+                    <div>
+                        <div class="section-title">LiteLLM AI Insights Engine</div>
+                        <div class="form-group">
+                            <label for="llm_url">LiteLLM Proxy URL</label>
+                            <input type="text" id="llm_url" class="form-control" placeholder="https://wellness-dev.2050dgcare.com/litellm" required>
+                            <button type="button" class="btn-test" onclick="testConnection('litellm')">Test</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="llm_key">LiteLLM API Key</label>
+                                <input type="password" id="llm_key" class="form-control" placeholder="sk-..." required>
+                            </div>
+                            <div class="form-group">
+                                <label for="llm_model">Model</label>
+                                <input type="text" id="llm_model" class="form-control" placeholder="llm-heavy" required>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn" style="margin-top:20px;" id="saveBtn">
+                    <div class="spinner" id="saveSpinner"></div>
+                    <span id="saveText">Save Configurations</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // MagicUI Meteors Generation Script
+        function createMeteors() {
+            const container = document.getElementById('meteor-container');
+            if (!container) return;
+            
+            const count = 24; // Number of meteors active
+            for (let i = 0; i < count; i++) {
+                const meteor = document.createElement('span');
+                meteor.className = 'meteor';
+                
+                // Randomize positions, durations and delays
+                const left = Math.random() * 120 - 10; // offset off screen
+                const top = Math.random() * -30; // start off-screen vertically
+                const delay = Math.random() * 6; // delay up to 6s
+                const duration = Math.random() * 3 + 2.5; // duration between 2.5s and 5.5s
+                
+                meteor.style.left = `${left}%`;
+                meteor.style.top = `${top}%`;
+                meteor.style.animationDelay = `${delay}s`;
+                meteor.style.animationDuration = `${duration}s`;
+                
+                container.appendChild(meteor);
+            }
+        }
+        createMeteors();
+
+        // Switch Tabs Flow
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            const card = document.getElementById('loginCard');
+            const status = document.getElementById('statusBanner');
+            status.className = 'status-banner';
+            status.style.display = 'none';
+
+            if (tab === 'login') {
+                document.querySelector('[onclick="switchTab(\'login\')"]').classList.add('active');
+                document.getElementById('tab-login').classList.add('active');
+                card.classList.remove('expanded');
+            } else {
+                document.querySelector('[onclick="switchTab(\'setup\')"]').classList.add('active');
+                document.getElementById('tab-setup').classList.add('active');
+                card.classList.add('expanded');
+                loadConfigForm();
+            }
+        }
+
+        // Show status banners
+        function showMessage(type, msg) {
+            const banner = document.getElementById('statusBanner');
+            banner.className = `status-banner ${type}`;
+            banner.textContent = msg;
+            banner.style.display = 'block';
+        }
+
+        // Handle Sign Up Toggle
+        let isSignUpFlow = false;
+        function toggleSignUpFlow(event) {
+            event.preventDefault();
+            isSignUpFlow = !isSignUpFlow;
+            const confirmGroup = document.getElementById('confirmPasswordGroup');
+            const toggleText = document.getElementById('toggleSignUpText');
+            const loginText = document.getElementById('loginText');
+            const confirmInput = document.getElementById('confirm_password');
+            const usernameLabel = document.getElementById('usernameLabel');
+
+            if (isSignUpFlow) {
+                confirmGroup.style.display = 'block';
+                confirmInput.required = true;
+                loginText.innerHTML = 'Create Account &rarr;';
+                usernameLabel.innerText = 'Choose Username / Email';
+                toggleText.innerHTML = `Already have an account? <a href="#" onclick="toggleSignUpFlow(event)" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In</a>`;
+            } else {
+                confirmGroup.style.display = 'none';
+                confirmInput.required = false;
+                loginText.innerHTML = 'Sign In &rarr;';
+                usernameLabel.innerText = 'Username / Email Address';
+                toggleText.innerHTML = `Don't have an account? <a href="#" onclick="toggleSignUpFlow(event)" style="color: var(--primary); text-decoration: none; font-weight: 600;">Create one</a>`;
+            }
+        }
+
+        // Handle Login / Sign Up Request
+        async function handleLogin(event) {
+            event.preventDefault();
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            
+            if (isSignUpFlow) {
+                const cp = document.getElementById('confirm_password').value;
+                if (p !== cp) {
+                    showMessage('error', 'Passwords do not match');
+                    return;
+                }
+                const spinner = document.getElementById('loginSpinner');
+                const text = document.getElementById('loginText');
+                spinner.style.display = 'inline-block';
+                text.textContent = 'Creating Account...';
+
+                // Simulate successful account creation and redirect
+                setTimeout(() => {
+                    showMessage('success', 'Account created successfully! Logging you in...');
+                    setTimeout(() => {
+                        triggerSuccessAnimation();
+                    }, 1000);
+                }, 1000);
+                return;
+            }
+            
+            const spinner = document.getElementById('loginSpinner');
+            const text = document.getElementById('loginText');
+            spinner.style.display = 'inline-block';
+            text.textContent = 'Verifying...';
+
+            try {
+                const r = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                const data = await r.json();
+                if (r.ok) {
+                    showMessage('success', 'Sign in successful! Connecting...');
+                    setTimeout(() => {
+                        triggerSuccessAnimation();
+                    }, 1000);
+                } else {
+                    showMessage('error', data.error || 'Authentication failed');
+                    spinner.style.display = 'none';
+                    text.textContent = 'Sign In \u2192';
+                }
+            } catch (err) {
+                showMessage('error', 'Network error connecting to backend');
+                spinner.style.display = 'none';
+                text.textContent = 'Sign In \u2192';
+            }
+        }
+
+        // Load current config from server
+        async function loadConfigForm() {
+            try {
+                const r = await fetch('/api/config');
+                if (r.ok) {
+                    const data = await r.json();
+                    if (data.aws) {
+                        document.getElementById('aws_region').value = data.aws.region || 'ap-south-1';
+                        document.getElementById('aws_access_key').value = data.aws.access_key_id || '';
+                        document.getElementById('aws_secret_key').value = data.aws.secret_access_key || '';
+                    }
+                    if (data.grafana) {
+                        document.getElementById('grafana_url').value = data.grafana.url || '';
+                        document.getElementById('grafana_username').value = data.grafana.username || '';
+                        document.getElementById('grafana_password').value = data.grafana.password || '';
+                    }
+                    if (data.loki) {
+                        document.getElementById('loki_url').value = data.loki.url || '';
+                    }
+                    if (data.litellm) {
+                        document.getElementById('llm_url').value = data.litellm.url || '';
+                        document.getElementById('llm_key').value = data.litellm.api_key || '';
+                        document.getElementById('llm_model').value = data.litellm.model || 'llm-heavy';
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading config", err);
+            }
+        }
+
+        // Save new config
+        async function handleSaveConfig(event) {
+            event.preventDefault();
+            const spinner = document.getElementById('saveSpinner');
+            const text = document.getElementById('saveText');
+            spinner.style.display = 'inline-block';
+            text.textContent = 'Applying Configuration...';
+
+            const payload = {
+                aws: {
+                    region: document.getElementById('aws_region').value,
+                    access_key_id: document.getElementById('aws_access_key').value,
+                    secret_access_key: document.getElementById('aws_secret_key').value
+                },
+                grafana: {
+                    url: document.getElementById('grafana_url').value,
+                    username: document.getElementById('grafana_username').value,
+                    password: document.getElementById('grafana_password').value
+                },
+                loki: {
+                    url: document.getElementById('loki_url').value
+                },
+                litellm: {
+                    url: document.getElementById('llm_url').value,
+                    api_key: document.getElementById('llm_key').value,
+                    model: document.getElementById('llm_model').value
+                }
+            };
+
+            try {
+                const r = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (r.ok) {
+                    showMessage('success', 'Configuration successfully saved and applied!');
+                    setTimeout(() => {
+                        switchTab('login');
+                    }, 1500);
+                } else {
+                    const err = await r.json();
+                    showMessage('error', err.error || 'Failed to save configuration');
+                }
+            } catch (err) {
+                showMessage('error', 'Network error saving config');
+            } finally {
+                spinner.style.display = 'none';
+                text.textContent = 'Save Configurations';
+            }
+        }
+
+        // Test credentials connection
+        async function testConnection(target) {
+            const banner = document.getElementById('statusBanner');
+            banner.style.display = 'none';
+            
+            const payload = { target: target };
+            if (target === 'aws') {
+                payload.aws = {
+                    region: document.getElementById('aws_region').value,
+                    access_key_id: document.getElementById('aws_access_key').value,
+                    secret_access_key: document.getElementById('aws_secret_key').value
+                };
+            } else if (target === 'grafana') {
+                payload.grafana = {
+                    url: document.getElementById('grafana_url').value,
+                    username: document.getElementById('grafana_username').value,
+                    password: document.getElementById('grafana_password').value
+                };
+            } else if (target === 'litellm') {
+                payload.litellm = {
+                    url: document.getElementById('llm_url').value,
+                    api_key: document.getElementById('llm_key').value,
+                    model: document.getElementById('llm_model').value
+                };
+            }
+
+            try {
+                const r = await fetch('/api/test-connection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await r.json();
+                if (res.connected) {
+                    showMessage('success', `Connection successful: ${res.message}`);
+                } else {
+                    showMessage('error', `Connection failed: ${res.message}`);
+                }
+            } catch (err) {
+                showMessage('error', `Connection error trying to test ${target}`);
+            }
+        }
+
+        // Success animation logic
+        function triggerSuccessAnimation() {
+            const overlay = document.getElementById('successOverlay');
+            const container = document.getElementById('animationLogoContainer');
+            
+            // Show overlay
+            overlay.style.display = 'flex';
+            
+            // Force reflow
+            overlay.offsetWidth;
+            
+            // Fade in and scale up
+            overlay.style.opacity = '1';
+            container.style.transform = 'scale(1)';
+            
+            // Redirect after animation completes
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1800);
+        }
+    </script>
+
+    <!-- Premium Success Animation Overlay -->
+    <div id="successOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #ffffff; z-index: 10000; align-items: center; justify-content: center; flex-direction: column; opacity: 0; transition: opacity 0.4s ease-in-out;">
+        <div id="animationLogoContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; transform: scale(0.75); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <svg viewBox="0 0 240 240" width="130" height="130" fill="none" style="margin-bottom: 24px; filter: drop-shadow(0 12px 24px rgba(0, 108, 84, 0.25));">
+                <path d="M240 124C240 141.673 225.673 156 208 156H204C181.373 156 170.059 156 163.029 163.029C156 170.059 156 181.373 156 204V240H124V220C124 174.745 124 152.117 138.059 138.059C152.118 124 174.745 124 220 124H240ZM116 20C116 65.2548 116 87.8825 101.941 101.941C87.8826 116 65.2549 116 20.0001 116H6.10352e-05C6.02626e-05 98.3269 14.3269 84 32.0001 84H36.0001C58.6275 84 69.9413 84.0001 76.9708 76.9707C84.0002 69.9413 84.0001 58.6274 84.0001 36V0H116V20ZM124 0C141.673 0 156 14.3269 156 32V36C156 58.6274 156 69.9413 163.029 76.9707C170.059 84.0001 181.373 84 204 84H240V116H220C174.745 116 152.118 116 138.059 101.941C124 87.8825 124 65.2548 124 20V0Z" fill="#232323"></path>
+                <path d="M116 240C98.3269 240 84 225.673 84 208L84 204C84 181.373 84.0001 170.059 76.9707 163.029C69.9413 156 58.6274 156 36 156L-7.34351e-06 156L-1.0141e-05 124L20 124C65.2548 124 87.8825 124 101.941 138.059C116 152.117 116 174.745 116 220L116 240Z" fill="#006c54"></path>
+            </svg>
+            <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 38px; font-weight: 800; color: #232323; margin: 0; letter-spacing: -1.5px; display: flex; align-items: center; justify-content: center; gap: 2px;">Vista<span style="color: #006c54;">Eye</span></h1>
+            <p style="font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700; color: #94a3b8; margin-top: 10px; text-transform: uppercase; letter-spacing: 3px;">Cost Optimization Dashboard</p>
+            
+            <!-- Sleek pulse line loader -->
+            <div style="width: 140px; height: 3px; background: #e2e8f0; border-radius: 10px; margin-top: 24px; overflow: hidden; position: relative;">
+                <div style="width: 60px; height: 100%; background: linear-gradient(90deg, #006c54, #10b981); position: absolute; left: -60px; border-radius: 10px; animation: loaderPulse 1.2s infinite ease-in-out;"></div>
+            </div>
+            <style>
+                @keyframes loaderPulse {
+                    0% { left: -60px; }
+                    50% { left: 140px; }
+                    100% { left: 140px; }
+                }
+            </style>
+        </div>
+    </div>
+</body>
+</html>

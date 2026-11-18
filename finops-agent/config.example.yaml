@@ -1,0 +1,65 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  VistaEye FinOps Agent — Starter Config (copy this to config.yaml)
+#
+#  QUICK START — 3 steps:
+#
+#  1. Set your AWS credentials:
+#       aws configure           ← just run this in your terminal
+#     The tool picks up whatever profile is active. No code changes.
+#
+#  2. Add your clusters below (one block per cluster):
+#     - cluster_name   = exact EKS cluster name from AWS Console
+#     - url            = Grafana URL (public or localhost port-forward)
+#     - username       = Grafana username
+#     - password       = Grafana password
+#
+#  3. Run the dashboard:
+#       python server.py
+#     Then open: http://localhost:8585
+#     Click "Generate New Report".
+#
+#  ── If Grafana is private (no public URL) ──────────────────────────────────
+#  Port-forward it first, then use localhost:
+#    kubectl port-forward svc/prometheus-grafana -n monitoring 9000:80
+#    url: http://localhost:9000
+#  ────────────────────────────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════════
+
+aws:
+  region: ap-south-1          # Change to your AWS region
+  # Credentials are auto-loaded from AWS CLI. To override:
+  # profile: my-aws-profile
+  # access_key_id: AKIAXXXXXXXXXXXXXXXX
+  # secret_access_key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+grafana_clusters:
+  # Add one block per cluster. Remove or comment blocks to exclude a cluster.
+
+  - cluster_name: YOUR_CLUSTER_NAME_1      # Must match EKS cluster name exactly
+    url: https://your-grafana.company.com  # Public Grafana URL
+    username: admin
+    password: YOUR_GRAFANA_PASSWORD
+
+  - cluster_name: YOUR_CLUSTER_NAME_2      # Private cluster — use port-forward
+    url: http://localhost:9000             # kubectl port-forward svc/prometheus-grafana -n monitoring 9000:80
+    username: admin
+    password: YOUR_GRAFANA_PASSWORD
+
+  # Add more clusters here...
+
+analysis:
+  lookback_days: 7
+  idle_cpu_threshold_pct: 5
+  rightsizing_cpu_threshold_pct: 40
+  old_snapshot_days: 90
+
+# ─── AI Analysis (optional — remove this block to disable) ─────────────────
+litellm:
+  url: https://your-litellm-endpoint.com/litellm
+  api_key: YOUR_API_KEY
+  model: llm-heavy
+  timeout: 120
+
+report:
+  output_dir: ./reports
+  open_in_browser: true

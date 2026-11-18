@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EKS FinOps Report</title>
+  <style>
+    /* PAGE NAV */
+    .page-nav { background:#ffffff; border-bottom:2px solid var(--border,#e2e8f0); display:flex; gap:0; padding:0 40px; position:sticky; top:0; z-index:100; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .page-nav-btn { padding:14px 22px; font-size:13px; font-weight:600; font-family:'Space Grotesk',sans-serif; border:none; background:transparent; cursor:pointer; color:#64748b; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all .2s; display:flex; align-items:center; gap:8px; }
+    .page-nav-btn:hover { color:#0f172a; }
+    .page-nav-btn.active { color:#2563eb; border-bottom-color:#2563eb; }
+    .page { display:none; }
+    .page.active { display:block; }
+    /* CLUSTER PLAN PAGE */
+    .cp-container { max-width:1400px; margin:0 auto; padding:32px 40px; }
+    .cluster-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
+    .cluster-tab-btn { padding:8px 18px; border-radius:8px; border:1.5px solid #e2e8f0; background:#fff; font-size:13px; font-weight:600; cursor:pointer; color:#475569; transition:all .2s; font-family:'Space Grotesk',sans-serif; }
+    .cluster-tab-btn:hover { border-color:#2563eb; color:#2563eb; }
+    .cluster-tab-btn.active { background:#2563eb; color:#fff; border-color:#2563eb; }
+    .cluster-panel { display:none; }
+    .cluster-panel.active { display:block; }
+    .cluster-header-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:24px 28px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+    .cluster-name-big { font-size:22px; font-weight:800; font-family:'Space Grotesk',sans-serif; color:#0f172a; }
+    .cluster-cost-chip { font-size:22px; font-weight:800; font-family:'Space Grotesk',sans-serif; color:#2563eb; background:#dbeafe; padding:6px 18px; border-radius:10px; }
+    .cluster-meta-row { display:flex; gap:24px; flex-wrap:wrap; margin-top:10px; }
+    .cluster-meta-item { display:flex; flex-direction:column; gap:2px; }
+    .cluster-meta-item .cm-label { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#94a3b8; font-weight:600; }
+    .cluster-meta-item .cm-value { font-size:15px; font-weight:700; color:#0f172a; }
+    .ng-table { width:100%; border-collapse:collapse; border-radius:10px; overflow:hidden; margin-bottom:28px; }
+    .ng-table th { background:#f1f5f9; font-size:11px; text-transform:uppercase; letter-spacing:.5px; padding:10px 14px; color:#475569; font-weight:700; text-align:left; }
+    .ng-table td { padding:10px 14px; font-size:13px; border-top:1px solid #e2e8f0; }
+    .ng-table tr:last-child td { border-bottom:none; }
+    .ng-table tbody tr:hover { background:#f8fafc; }
+    .phase-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin-bottom:32px; }
+    .phase-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+    .phase-header { padding:14px 18px; display:flex; align-items:center; gap:10px; }
+    .phase-num { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; }
+    .phase-title { font-size:14px; font-weight:700; font-family:'Space Grotesk',sans-serif; }
+    .phase-subtitle { font-size:11px; color:#64748b; }
+    .phase-body { padding:12px 18px 18px; }
+    .phase-item { display:flex; gap:8px; align-items:flex-start; padding:6px 0; border-bottom:1px solid #f1f5f9; font-size:12.5px; color:#334155; line-height:1.5; }
+    .phase-item:last-child { border-bottom:none; }
+    .phase-bullet { flex-shrink:0; margin-top:2px; width:6px; height:6px; border-radius:50%; }
+    .ph1 .phase-header { background:#fef3c7; } .ph1 .phase-num { background:#f59e0b; color:#fff; } .ph1 .phase-title { color:#92400e; } .ph1 .phase-bullet { background:#f59e0b; }
+    .ph2 .phase-header { background:#dbeafe; } .ph2 .phase-num { background:#2563eb; color:#fff; } .ph2 .phase-title { color:#1e3a8a; } .ph2 .phase-bullet { background:#2563eb; }
+    .ph3 .phase-header { background:#d1fae5; } .ph3 .phase-num { background:#10b981; color:#fff; } .ph3 .phase-title { color:#064e3b; } .ph3 .phase-bullet { background:#10b981; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --green: #16a34a;
+      --green-dim: #d1fae5;
+      --yellow: #ca8a04;
+      --yellow-dim: #fef9c3;
+      --red: #dc2626;
+      --red-dim: #fee2e2;
+      --blue: #2563eb;
+      --blue-dim: #dbeafe;
+      --purple: #7c3aed;
+      --orange: #ea580c;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; line-height: 1.6; }
+    h1, h2, h3, h4, h5, h6, .section-title, .card-label, .meta-item .label { font-family: 'Space Grotesk', sans-serif; }
+
+    /* ── HEADER ── */
+    .header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border); padding: 32px 40px; position: relative; overflow: hidden;
+    }
+    .header::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(37,99,235,0.06) 0%, transparent 60%);
+    }
+    .header-inner { max-width: 1400px; margin: 0 auto; position: relative; }
+    .header h1 { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+    .header h1 span { color: var(--blue); }
+    .header .subtitle { color: var(--muted); margin-top: 4px; font-size: 13px; display: flex; align-items: center; }
+    .header .meta { margin-top: 16px; display: flex; gap: 28px; flex-wrap: wrap; }
+    .meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .meta-item .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .meta-item .value { font-size: 14px; font-weight: 600; color: var(--text); }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 1400px; margin: 0 auto; padding: 32px 40px; }
+    .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; font-weight: 600; }
+
+    /* ── SUMMARY CARDS ── */
+    /* ── REDESIGNED SUMMARY CARDS (Aegis Hub Style) ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .summary-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 155px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+    .summary-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+    }
+    .sc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+    .sc-icon-wrap {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sc-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sc-badge.on-track {
+      background: #e2f0d9;
+      color: #388e3c;
+    }
+    .sc-badge.urgent {
+      background: #fce8e6;
+      color: #c53929;
+    }
+    .sc-badge.watch {
+      background: #fef3c7;
+      color: #d97706;
+    }
+    .sc-badge.neutral {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .sc-value-container {
+      margin-top: 12px;
+    }
+    .summary-card .card-value {
+      font-size: 30px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .summary-card .card-label {
+      font-size: 12px;
+      color: #475569;
+      font-weight: 600;
+      margin-top: 4px;
+      text-transform: none;
+      letter-spacing: normal;
+      font-family: 'Outfit', sans-serif;
+    }
+    .summary-card .card-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 1px;
+      font-weight: 500;
+    }
+    .sc-visual {
+      margin-top: auto;
+      width: 100%;
+    }
+    .sc-progress-bar {
+      background: #f1f5f9;
+      height: 5px;
+      border-radius: 3px;
+      margin-top: 10px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .sc-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+    .sc-progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #64748b;
+      margin-top: 3px;
+      font-weight: 600;
+    }
+    .status-badge {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--green);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+      margin-right: 10px;
+      border: 1px solid rgba(63, 185, 80, 0.3);
+    }
+
+    /* ── WARNINGS ── */
+    .warning-box {
+      background: var(--yellow-dim); border: 1px solid #fef08a;
+      border-radius: var(--radius); padding: 12px 16px;
+      margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start;
+    }
+    .warning-box .text { font-size: 12px; color: #713f12; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    .filter-bar select, .filter-bar input {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); padding: 7px 12px; border-radius: 6px; font-size: 13px;
+    }
+    .filter-bar input { width: 240px; }
+    .filter-bar input::placeholder { color: var(--muted); }
+    .filter-count { font-size: 12px; color: var(--muted); margin-left: 4px; }
+    .filter-bar button {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;
+      transition: all 0.15s ease;
+    }
+    .filter-bar button:hover {
+      background: var(--surface2); border-color: #cbd5e1;
+    }
+
+    /* ── FINDINGS CARDS ── */
+    .findings-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 40px; }
+    .finding-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+    }
+    .finding-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .finding-card.has-snippet { cursor: pointer; }
+    .finding-card.has-snippet:hover { border-color: var(--blue); }
+
+    /* card header row */
+    .fc-header {
+      display: grid;
+      grid-template-columns: 28px 160px 220px 1fr 260px 70px 100px;
+      gap: 0;
+      align-items: center;
+      padding: 12px 16px;
+      min-height: 56px;
+    }
+    .fc-num { color: var(--muted); font-size: 12px; }
+    .fc-cat { padding: 0; }
+    .fc-resource { padding: 0; }
+    .fc-state { font-size: 12px; color: var(--muted); padding: 0 12px; }
+    .fc-action { font-size: 12px; font-weight: 500; padding: 0 12px; color: var(--text); }
+    .fc-risk { }
+    .fc-savings { text-align: right; }
+    .fc-expand-hint {
+      font-size: 11px; color: var(--blue); margin-top: 3px;
+      display: flex; align-items: center; gap: 4px;
+      font-weight: 500;
+    }
+    .fc-expand-hint .arrow { transition: transform 0.2s; display: inline-block; }
+    .finding-card.open .fc-expand-hint .arrow { transform: rotate(90deg); }
+
+    /* badges */
+    .cat-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
+    .cat-ebs      { background: #fee2e2; color: #dc2626; }
+    .cat-snapshot { background: #fef3c7; color: #d97706; }
+    .cat-lb       { background: #dbeafe; color: #2563eb; }
+    .cat-node     { background: #f3e8ff; color: #7c3aed; }
+    .cat-pod      { background: #d1fae5; color: #16a34a; }
+    .cat-scale    { background: #e0f2fe; color: #0369a1; }
+    .cat-s3       { background: #ccfbf1; color: #0f766e; }
+    .cat-cloudfront { background: #fae8ff; color: #a21caf; }
+    .cat-ec2      { background: #ffedd5; color: #c2410c; }
+    .cat-iam      { background: #fce7f3; color: #be185d; }
+    .cat-eks      { background: #fef3c7; color: #b45309; }
+    .cat-invest   { background: #f1f5f9; color: #475569; }
+
+    .risk-low  { color: #15803d;  background: #d1fae5;  padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .risk-med  { color: #b45309; background: #fef3c7; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .risk-high { color: #b91c1c;    background: #fee2e2;    padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    .resource-id { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--blue); font-weight: 500; }
+    .resource-name { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .savings-val { color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; }
+
+    /* ── AI SUGGESTION PANEL (inline) ── */
+    .fc-suggestion {
+      display: none;
+      border-top: 1px solid var(--border);
+      background: #f8fafc;
+    }
+    .finding-card.open .fc-suggestion { display: block; }
+
+    .suggestion-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .suggestion-inner.single { grid-template-columns: 1fr; }
+
+    .snippet-block {
+      padding: 16px;
+      border-right: 1px solid var(--border);
+    }
+    .snippet-block:last-child { border-right: none; }
+
+    .snippet-label {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .lang-tag {
+      padding: 2px 8px; border-radius: 4px; font-size: 10px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .lang-hcl   { background: #f3e8ff; color: #7c3aed; }
+    .lang-cli   { background: #d1fae5; color: #16a34a; }
+    .lang-yaml  { background: #dbeafe; color: #2563eb; }
+    .lang-patch { background: #ffedd5; color: #c2410c; }
+
+    .snippet-label .snippet-title { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+    pre {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      line-height: 1.6; color: #0f172a; overflow-x: auto;
+      white-space: pre-wrap; word-break: break-all;
+      background: #ffffff; border: 1px solid #e2e8f0;
+      padding: 12px; border-radius: 6px;
+    }
+
+    .copy-btn {
+      float: right; background: #ffffff; border: 1px solid #cbd5e1;
+      color: #475569; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; cursor: pointer; transition: all 0.15s; margin-top: -2px;
+    }
+    .copy-btn:hover { border-color: var(--blue); color: var(--blue); background: #f8fafc; }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); background: #f0fdf4; }
+
+    /* reason strip */
+    .reason-strip {
+      padding: 10px 16px;
+      background: #f1f5f9;
+      border-top: 1px solid var(--border);
+      font-size: 12.5px; color: #475569;
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .reason-strip .ri { flex-shrink: 0; }
+
+    /* column headers */
+    .col-headers {
+      display: grid;
+      grid-template-columns: 28px 160px 220px 1fr 260px 70px 100px;
+      gap: 0;
+      padding: 10px 16px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+      color: #475569; font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      background: #f1f5f9;
+      border-radius: var(--radius) var(--radius) 0 0;
+      margin-bottom: 1px;
+    }
+    .col-h-action { padding: 0 12px; }
+    .col-h-state { padding: 0 12px; }
+
+    /* AI badge */
+    .ai-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: linear-gradient(135deg, #f3e8ff, #dbeafe);
+      border: 1px solid #c084fc;
+      color: #6d28d9; padding: 2px 8px; border-radius: 12px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase; margin-left: 8px;
+      animation: aiPulse 3s ease-in-out infinite;
+    }
+    @keyframes aiPulse {
+      0%, 100% { border-color: #c084fc; }
+      50% { border-color: #a78bfa; box-shadow: 0 0 8px rgba(167, 139, 250, 0.2); }
+    }
+
+    /* AI Summary */
+    .ai-summary-box {
+      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+      border: 1px solid #c084fc; border-radius: var(--radius);
+      padding: 24px; margin-bottom: 24px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(109, 40, 217, 0.05);
+    }
+    .ai-summary-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #a78bfa, #c084fc, #60a5fa, #a78bfa);
+      background-size: 200% 100%; animation: gradientFlow 4s linear infinite;
+    }
+    @keyframes gradientFlow {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+    .ai-summary-box .ai-title {
+      font-size: 13px; font-weight: 700; color: #6d28d9;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .ai-summary-box .ai-text { font-size: 14px; line-height: 1.7; color: #1e1b4b; }
+    .ai-insights { margin-top: 16px; }
+    .ai-insight {
+      background: #ffffff; border: 1px solid #e9d5ff;
+      border-radius: 6px; padding: 10px 14px; margin-bottom: 8px;
+      font-size: 13px; color: #4c1d95;
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .ai-insight .ai-icon { flex-shrink: 0; }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 24px 40px;
+      text-align: center; color: var(--muted); font-size: 12px;
+      max-width: 1400px; margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- PAGE NAVIGATION -->
+<nav class="page-nav" id="pageNav">
+  <button class="page-nav-btn active" onclick="showPage('overview',this)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+    Overview & Findings
+  </button>
+  <button class="page-nav-btn" onclick="showPage('cluster-plans',this)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+    Cluster Optimization Plans
+  </button>
+</nav>
+
+<div id="page-overview" class="page active">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <h1><span id="dynamic-greeting">Good afternoon</span>, Anirudh</h1>
+    <div class="subtitle">
+      <span class="status-badge">All systems operational</span> EKS FinOps Cost Optimization Report &middot; AWS ap-south-1 &middot; Read-only audit
+    </div>
+    <div class="meta">
+      <div class="meta-item">
+        <span class="label">Generated At</span>
+        <span class="value">{{ analyzed_at }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">Analysis Window</span>
+        <span class="value">7 days</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">Total Findings</span>
+        <span class="value" style="color:var(--blue)">{{ findings | length }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">Estimated Monthly Savings</span>
+        <span class="value" style="color:var(--green)">${{ "%.2f"|format(total_savings) }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- EXECUTIVE SUMMARY -->
+  <p class="section-title">Executive Summary</p>
+  <div class="summary-grid">
+    <!-- Card 1: Estimated Monthly Savings -->
+    <div class="summary-card">
+      <div class="sc-header">
+        <div class="sc-icon-wrap" style="background: #d1fae5; color: #10b981;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <div class="sc-badge on-track">ON TRACK</div>
+      </div>
+      <div class="sc-value-container">
+        <div class="card-value">${{ "%.0f"|format(total_savings) }}</div>
+        <div class="card-label">Estimated Monthly Savings</div>
+        <div class="card-sub">USD / month if all actions taken</div>
+      </div>
+      <div class="sc-visual">
+        <svg viewBox="0 0 100 20" width="100%" height="20" style="margin-top: 10px;">
+          <path d="M0,15 Q20,16 40,8 T80,10 T100,2" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Card 1b: Total EKS Cluster Cost -->
+    <div class="summary-card">
+      <div class="sc-header">
+        <div class="sc-icon-wrap" style="background: #e0f2fe; color: #0284c7;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+        </div>
+        <div class="sc-badge neutral">INFO</div>
+      </div>
+      <div class="sc-value-container">
+        <div class="card-value">${{ "%.0f"|format(total_cluster_cost) }}</div>
+        <div class="card-label">Total EKS Cluster Cost</div>
+        <div class="card-sub">Nodes + Control Planes</div>
+      </div>
+    </div>
+
+    <!-- Card 1c: Total AWS Resource Cost -->
+    <div class="summary-card">
+      <div class="sc-header">
+        <div class="sc-icon-wrap" style="background: #fce7f3; color: #db2777;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+        </div>
+        <div class="sc-badge neutral">INFO</div>
+      </div>
+      <div class="sc-value-container">
+        <div class="card-value">${{ "%.0f"|format(total_aws_cost) }}</div>
+        <div class="card-label">Total AWS Resources</div>
+        <div class="card-sub">Estimated Monthly</div>
+      </div>
+    </div>
+
+    <!-- Card 2: Unattached EBS Volumes -->
+    {% set ebs_count = findings | selectattr("category","equalto","EBS Hygiene") | list | length %}
+    <div class="summary-card">
+      <div class="sc-header">
+        <div class="sc-icon-wrap" style="background: #fee2e2; color: #ef4444;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>
+        </div>
+        {% if ebs_count > 0 %}<div class="sc-badge urgent">URGENT</div>{% else %}<div class="sc-badge on-track">ON TRACK</div>{% endif %}
+      </div>
+      <div class="sc-value-container">
+        <div class="card-value">{{ ebs_count }}</div>
+        <div class="card-label">Unattached EBS Volumes</div>
+        <div class="card-sub">Immediately deleteable</div>
+      </div>
+      <div class="sc-visual">
+        <div class="sc-progress-bar">
+          <div class="sc-progress-fill" style="background: #ef4444; width: {% if ebs_count > 0 %}100%{% else %}0%{% endif %};"></div>
+        </div>
+        <div class="sc-progress-meta">
+          <span>Waste</span>
+          <span>{% if ebs_count > 0 %}100%{% else %}0%{% endif %}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Idle Load Balancers -->
+    {% set lb_count = findings | selectattr("category","equalto","Idle Load Balancer") | list | length %}
+    <div class="summary-card">
+      <div class="sc-header">
+        <div class="sc-icon-wrap" style="background: #fef3c7; color: #f59e0b;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+        </div>
+        {% if lb_count > 0 %}<div class="sc-badge urgent">URGENT</div>{% else %}<div class="sc-badge on-track">ON TRACK</div>{% endif %}
+      </div>
+      <div class="sc-value-container">
+        <div class="card-value">{{ lb_count }}</div>
+        <div class="card-label">Idle Load Balancers</div>
+        <div class="card-sub">0 healthy targets</div>
+      </div>
+      <div class="sc-visual">
+        <div class="sc-progress-bar">
+          <div class="sc-progress-fill" style="background: #f59e0b; width: {% if lb_count > 0 %}100%{% else %}0%{% endif %};"></div>
+        </div>
+        <div class="sc-progress-meta">
+          <span>Waste</span>
+          <span>{% if lb_count > 0 %}100%{% else %}0%{% endif %}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Pod Right-sizing -->
+    {% set pod_count = findings | selectattr("category","equalto","Pod Right-sizing") | list | length %}
+    <div class="summary-card">
+      <div class="sc-header">
+        <div class="sc-icon-wrap" style="background: #f5f3ff; color: #8b5cf6;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        {% if pod_count > 0 %}<div class="sc-badge watch">WATCH</div>{% else %}<div class="sc-badge on-track">ON TRACK</div>{% endif %}
+      </div>
+      <div class="sc-value-container">
+        <div class="card-value">{{ pod_count }}</div>
+        <div class="card-label">Pod Right-sizing</div>
+        <div class="card-sub">Overprovisioned pods</div>
+      </div>
+      <div class="sc-visual">
+        <svg viewBox="0 0 100 20" width="100%" height="20" style="margin-top: 10px;">
+          <path d="M0,5 Q20,18 40,8 T80,14 T100,10" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Card 5: Scale-to-Zero Candidates -->
+    {% set scale_count = findings | selectattr("category","equalto","Scale-to-Zero Candidate") | list | length %}
+    <div class="summary-card">
+      <div class="sc-header">
+        <div class="sc-icon-wrap" style="background: #dbeafe; color: #3b82f6;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        </div>
+        <div class="sc-badge on-track">ON TRACK</div>
+      </div>
+      <div class="sc-value-container">
+        <div class="card-value">{{ scale_count }}</div>
+        <div class="card-label">Scale-to-Zero Candidates</div>
+        <div class="card-sub">KEDA cron scaler ready</div>
+      </div>
+      <div class="sc-visual">
+        <div class="sc-progress-bar">
+          <div class="sc-progress-fill" style="background: #3b82f6; width: 42%;"></div>
+        </div>
+        <div class="sc-progress-meta">
+          <span>Load</span>
+          <span>42%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6: Investigate -->
+    {% set inv_count = findings | selectattr("category","equalto","Investigate") | list | length %}
+    <div class="summary-card">
+      <div class="sc-header">
+        <div class="sc-icon-wrap" style="background: #f1f5f9; color: #64748b;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        {% if inv_count > 0 %}<div class="sc-badge watch">WATCH</div>{% else %}<div class="sc-badge on-track">ON TRACK</div>{% endif %}
+      </div>
+      <div class="sc-value-container">
+        <div class="card-value">{{ inv_count }}</div>
+        <div class="card-label">Investigate</div>
+        <div class="card-sub">Missing metrics</div>
+      </div>
+      <div class="sc-visual">
+        <svg viewBox="0 0 100 20" width="100%" height="20" style="margin-top: 10px;">
+          <path d="M0,10 L30,10 L40,18 L50,2 L60,10 L100,10" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI EXECUTIVE SUMMARY -->
+  {% if llm_executive_summary %}
+  <div class="ai-summary-box">
+    <div class="ai-title">
+      <svg viewBox="0 0 100 100" style="width: 18px; height: 18px; fill: none; stroke: #6d28d9; filter: drop-shadow(0 0 3px rgba(109, 40, 217, 0.5)); display: inline-block; vertical-align: middle; margin-right: 4px;">
+        <circle cx="50" cy="50" r="40" stroke-width="8" stroke-dasharray="12 8" />
+        <circle cx="50" cy="50" r="28" stroke-width="6" stroke-dasharray="8 4" />
+        <circle cx="50" cy="50" r="12" stroke-width="10" fill="#6d28d9" />
+      </svg>
+      <span>Friday Executive Summary</span>
+    </div>
+    <div class="ai-text">{{ llm_executive_summary }}</div>
+    {% if llm_insights %}
+    <div class="ai-insights">
+      {% for insight in llm_insights %}
+      <div class="ai-insight">
+        <span class="ai-icon">💡</span>
+        <span>{{ insight }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- CLUSTER OPTIMIZATION PLANS -->
+  {% if cluster_plans %}
+  <p class="section-title" style="margin-top: 24px;">Cluster-Wise Optimization Plan</p>
+  <div class="summary-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-bottom: 24px;">
+    {% for plan in cluster_plans %}
+    <div class="summary-card" style="min-height: 200px; border-top: 4px solid var(--blue); justify-content: flex-start; gap: 8px; padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px;">
+        <span style="font-weight: 700; font-size: 15px; color: var(--text);">{{ plan.cluster_name }}</span>
+        <span class="sc-badge" style="background: rgba(37, 99, 235, 0.1); color: var(--blue); font-size: 10px;">${{ "%.0f"|format(plan.monthly_cost) }}/mo</span>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 8px;">
+        <!-- Phase 1 -->
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+            <span style="background: #fef3c7; color: #d97706; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px;">1</span>
+            Reduce Pod Resources
+          </div>
+          <div style="font-size: 12px; color: var(--muted); padding-left: 20px;">
+            {% for item in plan.phase1[:2] %}
+            <div style="margin-bottom: 2px;">&bull; {{ item }}</div>
+            {% endfor %}
+            {% if plan.phase1|length > 2 %}
+            <div style="font-size: 11px; font-style: italic;">+ {{ plan.phase1|length - 2 }} more pod recommendations</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Phase 2 -->
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+            <span style="background: #dbeafe; color: #2563eb; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px;">2</span>
+            Reschedule &amp; Scale-to-Zero
+          </div>
+          <div style="font-size: 12px; color: var(--muted); padding-left: 20px;">
+            {% for item in plan.phase2[:2] %}
+            <div style="margin-bottom: 2px;">&bull; {{ item }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Phase 3 -->
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #047857; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+            <span style="background: #d1fae5; color: #10b981; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px;">3</span>
+            Rightsize Node Groups
+          </div>
+          <div style="font-size: 12px; color: var(--muted); padding-left: 20px;">
+            {% for item in plan.phase3[:2] %}
+            <div style="margin-bottom: 2px;">&bull; {{ item }}</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 12px; text-align: right; width: 100%;">
+        <a href="#cluster-plans" onclick="showPage('cluster-plans', document.querySelectorAll('.page-nav-btn')[1]); return false;" style="font-size: 11px; color: var(--blue); font-weight: 600; text-decoration: none;">View Detailed Plan &rarr;</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ACTIVE WORKLOAD SCALING & SHUTDOWN SCHEDULES -->
+  <p class="section-title">Active Workload Scaling & Shutdown Schedules</p>
+  <div class="summary-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 24px;">
+    <!-- Dev & QA Schedule Card -->
+    <div class="summary-card" style="min-height: 140px; border-left: 4px solid var(--purple); justify-content: flex-start; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <span style="font-weight: 700; font-size: 13px; color: var(--text);">Dev & QA Clusters (Non-Prod)</span>
+        <span class="sc-badge on-track" style="background: rgba(124, 58, 237, 0.1); color: var(--purple);">Active</span>
+      </div>
+      <div style="font-size: 12.5px; color: var(--muted); margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+        <div><strong>Scaling Window:</strong> 8:00 AM - 1:00 AM IST Daily</div>
+        <div><strong>Shutdown Window:</strong> 1:00 AM - 8:00 AM IST</div>
+        <div><strong>Night Target:</strong> 0 desired nodes (Scale-to-zero)</div>
+      </div>
+    </div>
+    <!-- GPU Node Schedule Card -->
+    <div class="summary-card" style="min-height: 140px; border-left: 4px solid var(--yellow); justify-content: flex-start; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <span style="font-weight: 700; font-size: 13px; color: var(--text);">GPU Worker Nodes (Translation)</span>
+        <span class="sc-badge on-track" style="background: rgba(202, 138, 4, 0.1); color: var(--yellow);">Active</span>
+      </div>
+      <div style="font-size: 12.5px; color: var(--muted); margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+        <div><strong>Scaling Window:</strong> 8:00 AM - 8:00 PM IST (Mon-Fri)</div>
+        <div><strong>Shutdown Window:</strong> 8:00 PM - 8:00 AM IST (Daily & W/E)</div>
+        <div><strong>Night Target:</strong> 0 desired nodes (Scale-to-zero)</div>
+      </div>
+    </div>
+    <!-- Prod Cluster Schedule Card -->
+    <div class="summary-card" style="min-height: 140px; border-left: 4px solid var(--red); justify-content: flex-start; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <span style="font-weight: 700; font-size: 13px; color: var(--text);">Production Cluster</span>
+        <span class="sc-badge urgent">Shutdown</span>
+      </div>
+      <div style="font-size: 12.5px; color: var(--muted); margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+        <div><strong>Status:</strong> Permanently scaled to 0 replicas</div>
+        <div><strong>Directive:</strong> Shutdown until further instructions</div>
+        <div><strong>Current Saving:</strong> 100% compute cost reduction</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAFETY WARNINGS -->
+  <p class="section-title">Safety Warnings</p>
+  <div class="warning-box">
+    <div class="text"><strong>Before deleting any EBS volume:</strong> run <code>kubectl get pv --all-namespaces -o wide</code> to confirm it is not referenced by a PersistentVolume.</div>
+  </div>
+  <div class="warning-box" style="margin-bottom:32px;">
+    <div class="text"><strong>Scale-to-zero must NOT be applied to StatefulSets</strong> (Kafka, PostgreSQL, MongoDB, etc.) without verifying PVC retention policy.</div>
+  </div>
+
+  <!-- FINDINGS -->
+  <p class="section-title">
+    AI Findings &amp; Suggestions
+    <span class="filter-count" id="visibleCount"></span>
+  </p>
+
+  <div class="filter-bar">
+    <input type="text" id="search" placeholder="Search resource or namespace..." oninput="filterCards()" />
+    <select id="catFilter" onchange="filterCards()">
+      <option value="">All Categories</option>
+      <option>EBS Hygiene</option>
+      <option>Idle Load Balancer</option>
+      <option>Pod Right-sizing</option>
+      <option>Scale-to-Zero Candidate</option>
+      <option>Right-sizing</option>
+      <option>Idle Node Group</option>
+      <option>Snapshot Hygiene</option>
+      <option>Idle EC2 Instance</option>
+      <option>S3 Lifecycle</option>
+      <option>S3 Intelligent-Tiering</option>
+      <option>CloudFront Clean up</option>
+      <option>CloudFront Optimization</option>
+      <option>EKS Control Plane</option>
+      <option>IAM Hygiene</option>
+      <option>Investigate</option>
+    </select>
+    <select id="riskFilter" onchange="filterCards()">
+      <option value="">All Risk Levels</option>
+      <option>Low</option>
+      <option>Medium</option>
+      <option>High</option>
+    </select>
+    <button onclick="expandAll()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Expand All</button>
+    <button onclick="collapseAll()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Collapse All</button>
+  </div>
+
+  <!-- Column headers -->
+  <div class="col-headers">
+    <div>#</div>
+    <div>Category</div>
+    <div>Resource</div>
+    <div class="col-h-state">Current State</div>
+    <div class="col-h-action">AI Suggested Action</div>
+    <div>Risk</div>
+    <div style="text-align:right">Savings/mo</div>
+  </div>
+
+  <div class="findings-list" id="findingsList">
+    {% for f in findings %}
+    {% set has_snippet = f.terraform_snippet or f.boto3_command or f.keda_snippet or f.helm_patch %}
+    <div class="finding-card {% if has_snippet %}has-snippet{% endif %}"
+         data-category="{{ f.category }}"
+         data-risk="{{ f.risk }}"
+         data-search="{{ f.resource_id|lower }} {{ f.name|lower }} {{ f.category|lower }}"
+         {% if has_snippet %}onclick="toggleCard(this)"{% endif %}>
+
+      <!-- MAIN ROW -->
+      <div class="fc-header">
+        <div class="fc-num">{{ loop.index }}</div>
+
+        <div class="fc-cat">
+          {% if f.category == "EBS Hygiene" %}<span class="cat-badge cat-ebs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>EBS Hygiene</span>
+          {% elif f.category == "Snapshot Hygiene" %}<span class="cat-badge cat-snapshot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 8v4l3 3M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path></svg>Snapshot</span>
+          {% elif f.category == "Idle Load Balancer" %}<span class="cat-badge cat-lb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1M21 8v8a2 2 0 0 1-2 2h-1M12 2v6M8 8H4M20 8h-4"/></svg>Idle LB</span>
+          {% elif f.category in ("Right-sizing","Idle Node Group") %}<span class="cat-badge cat-node"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect></svg>{{ f.category }}</span>
+          {% elif f.category == "Pod Right-sizing" %}<span class="cat-badge cat-pod"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>Pod Right-sizing</span>
+          {% elif f.category == "Scale-to-Zero Candidate" %}<span class="cat-badge cat-scale"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>Scale-to-Zero</span>
+          {% elif f.category == "Idle EC2 Instance" %}<span class="cat-badge cat-ec2"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>Idle EC2</span>
+          {% elif f.category in ("S3 Lifecycle", "S3 Intelligent-Tiering") %}<span class="cat-badge cat-s3"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 12V7H3v5M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M21 12v5c0 1.66-4 3-9 3s-9-1.34-9-3v-5M21 7c0 1.66-4 3-9 3S3 8.66 3 7M21 7v5M3 7v5"/></svg>{{ f.category }}</span>
+          {% elif f.category in ("CloudFront Clean up", "CloudFront Optimization") %}<span class="cat-badge cat-cloudfront"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>CloudFront</span>
+          {% elif f.category == "IAM Hygiene" %}<span class="cat-badge cat-iam"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>IAM Hygiene</span>
+          {% elif f.category == "EKS Control Plane" %}<span class="cat-badge cat-eks"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>EKS Control Plane</span>
+          {% else %}<span class="cat-badge cat-invest"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Investigate</span>{% endif %}
+          {% if f.source == "ai" %}<span class="ai-badge">🤖 AI</span>{% endif %}
+          {% if has_snippet %}
+          <div class="fc-expand-hint"><span class="arrow">▶</span> view suggestion</div>
+          {% endif %}
+        </div>
+
+        <div class="fc-resource">
+          <div class="resource-id">{{ f.resource_id }}</div>
+          <div class="resource-name">{{ f.name }}</div>
+        </div>
+
+        <div class="fc-state">{{ f.current_state }}</div>
+
+        <div class="fc-action">{{ f.suggested_action }}</div>
+
+        <div class="fc-risk">
+          {% if f.risk == "Low" %}<span class="risk-low">Low</span>
+          {% elif f.risk == "Medium" %}<span class="risk-med">Medium</span>
+          {% else %}<span class="risk-high">High</span>{% endif %}
+        </div>
+
+        <div class="fc-savings">
+          {% if f.monthly_savings > 0 %}<span class="savings-val">${{ "%.2f"|format(f.monthly_savings) }}</span>
+          {% else %}<span style="color:var(--muted)">indirect</span>{% endif %}
+        </div>
+      </div>
+
+      <!-- AI SUGGESTION PANEL -->
+      {% if has_snippet %}
+      <div class="fc-suggestion">
+        <div class="suggestion-inner {% if (f.boto3_command or f.terraform_snippet) and (f.helm_patch or f.keda_snippet) %}{% else %}single{% endif %}">
+
+          {% if f.boto3_command %}
+          <div class="snippet-block">
+            <div class="snippet-label">
+              <span class="lang-tag lang-cli">CLI</span>
+              <span class="snippet-title">AWS CLI Command — run to clean up</span>
+              <button class="copy-btn" onclick="copyCode(this, event)">Copy</button>
+            </div>
+            <pre>{{ f.boto3_command }}</pre>
+          </div>
+          {% endif %}
+
+          {% if f.terraform_snippet %}
+          <div class="snippet-block">
+            <div class="snippet-label">
+              <span class="lang-tag lang-hcl">HCL</span>
+              <span class="snippet-title">Terraform — apply this change</span>
+              <button class="copy-btn" onclick="copyCode(this, event)">Copy</button>
+            </div>
+            <pre>{{ f.terraform_snippet }}</pre>
+          </div>
+          {% endif %}
+
+          {% if f.helm_patch %}
+          <div class="snippet-block">
+            <div class="snippet-label">
+              <span class="lang-tag lang-patch">YAML</span>
+              <span class="snippet-title">HelmRelease resource patch — add to values override</span>
+              <button class="copy-btn" onclick="copyCode(this, event)">Copy</button>
+            </div>
+            <pre>{{ f.helm_patch }}</pre>
+          </div>
+          {% endif %}
+
+          {% if f.keda_snippet %}
+          <div class="snippet-block">
+            <div class="snippet-label">
+              <span class="lang-tag lang-yaml">YAML</span>
+              <span class="snippet-title">KEDA ScaledObject — apply to enable scale-to-zero</span>
+              <button class="copy-btn" onclick="copyCode(this, event)">Copy</button>
+            </div>
+            <pre>{{ f.keda_snippet }}</pre>
+          </div>
+          {% endif %}
+
+        </div>
+        <div class="reason-strip">
+          <span class="ri">💡</span>
+          <span><strong>Why:</strong> {{ f.reason }}</span>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<footer>
+  Generated by EKS-FinOps-Architect Agent &nbsp;·&nbsp; Read-only AWS audit &nbsp;·&nbsp;
+  All recommendations should be reviewed before applying to production.
+</footer>
+
+</div><!-- end page-overview -->
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- CLUSTER OPTIMIZATION PLANS PAGE -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="page-cluster-plans" class="page">
+
+  <div class="cp-container">
+    <p class="section-title" style="font-size:13px; margin-bottom:6px;">Cluster-Wise Optimization Plan</p>
+    <p style="color:#64748b; font-size:13px; margin-bottom:24px;">A 3-phase cost reduction plan per cluster — reduce pod requests first, then reschedule, then rightsize or remove nodes.</p>
+
+    {% if cluster_plans %}
+
+    <!-- CLUSTER TABS -->
+    <div class="cluster-tabs">
+      {% for plan in cluster_plans %}
+      <button class="cluster-tab-btn {% if loop.first %}active{% endif %}" onclick="showCluster('cluster-{{ loop.index }}', this)">{{ plan.cluster_name }}</button>
+      {% endfor %}
+    </div>
+
+    <!-- CLUSTER PANELS -->
+    {% for plan in cluster_plans %}
+    <div id="cluster-{{ loop.index }}" class="cluster-panel {% if loop.first %}active{% endif %}">
+
+      <!-- Header -->
+      <div class="cluster-header-card">
+        <div>
+          <div class="cluster-name-big">{{ plan.cluster_name }}</div>
+          <div class="cluster-meta-row">
+            <div class="cluster-meta-item">
+              <span class="cm-label">Est. Monthly Cost</span>
+              <span class="cm-value" style="color:#2563eb;">${{ "%.0f"|format(plan.monthly_cost) }}</span>
+            </div>
+            <div class="cluster-meta-item">
+              <span class="cm-label">Node Groups</span>
+              <span class="cm-value">{{ plan.node_groups|length }}</span>
+            </div>
+            <div class="cluster-meta-item">
+              <span class="cm-label">Pods to Rightsize</span>
+              <span class="cm-value" style="color:{% if plan.pod_rightsizing_count > 0 %}#d97706{% else %}#16a34a{% endif %};">{{ plan.pod_rightsizing_count }}</span>
+            </div>
+            <div class="cluster-meta-item">
+              <span class="cm-label">Scale-to-Zero Candidates</span>
+              <span class="cm-value" style="color:#2563eb;">{{ plan.scale_to_zero_count }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="cluster-cost-chip">${{ "%.0f"|format(plan.monthly_cost) }}/mo</div>
+      </div>
+
+      <!-- Node Groups Table -->
+      {% if plan.node_groups %}
+      <p class="section-title" style="margin-bottom:10px;">Node Groups</p>
+      <table class="ng-table">
+        <thead><tr><th>Node Group</th><th>Instance Type</th><th>Desired Count</th><th>Est. Monthly Cost</th></tr></thead>
+        <tbody>
+        {% for ng in plan.node_groups %}
+        <tr>
+          <td style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#2563eb;">{{ ng.name }}</td>
+          <td><span style="background:#f1f5f9; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:600;">{{ ng.instance_type }}</span></td>
+          <td>{{ ng.desired }} nodes</td>
+          <td style="font-weight:700; color:{% if ng.monthly_cost > 200 %}#dc2626{% elif ng.monthly_cost > 100 %}#d97706{% else %}#16a34a{% endif %}">${{ "%.0f"|format(ng.monthly_cost) }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="background:#fef3c7; border:1px solid #fef08a; border-radius:10px; padding:14px 18px; margin-bottom:24px; font-size:13px; color:#713f12;">
+        ⚠ No node group data available for this cluster (EKS describe_nodegroup timed out). Review node groups directly in the AWS Console.
+      </div>
+      {% endif %}
+
+      <!-- 3-Phase Plan -->
+      <p class="section-title" style="margin-bottom:14px;">3-Phase Action Plan</p>
+      <div class="phase-grid">
+
+        <!-- Phase 1: Reduce Pod Resources -->
+        <div class="phase-card ph1">
+          <div class="phase-header">
+            <div class="phase-num">1</div>
+            <div>
+              <div class="phase-title">Reduce Pod Resources</div>
+              <div class="phase-subtitle">Right-size CPU &amp; Memory requests</div>
+            </div>
+          </div>
+          <div class="phase-body">
+            {% for item in plan.phase1 %}
+            <div class="phase-item"><span class="phase-bullet"></span><span>{{ item }}</span></div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Phase 2: Reschedule / Scale-to-Zero -->
+        <div class="phase-card ph2">
+          <div class="phase-header">
+            <div class="phase-num">2</div>
+            <div>
+              <div class="phase-title">Reschedule &amp; Scale-to-Zero</div>
+              <div class="phase-subtitle">Pack pods tightly, idle pods to zero</div>
+            </div>
+          </div>
+          <div class="phase-body">
+            {% for item in plan.phase2 %}
+            <div class="phase-item"><span class="phase-bullet"></span><span>{{ item }}</span></div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Phase 3: Rightsize / Remove Nodes -->
+        <div class="phase-card ph3">
+          <div class="phase-header">
+            <div class="phase-num">3</div>
+            <div>
+              <div class="phase-title">Rightsize or Remove Nodes</div>
+              <div class="phase-subtitle">Change instance type or scale down</div>
+            </div>
+          </div>
+          <div class="phase-body">
+            {% for item in plan.phase3 %}
+            <div class="phase-item"><span class="phase-bullet"></span><span>{{ item }}</span></div>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <div style="background:#f1f5f9; border-radius:12px; padding:40px; text-align:center; color:#64748b;">
+      No cluster data available. Run the agent with AWS credentials to populate cluster plans.
+    </div>
+    {% endif %}
+
+  </div>
+
+  <footer>
+    Generated by EKS-FinOps-Architect Agent &nbsp;·&nbsp; Read-only AWS audit &nbsp;·&nbsp;
+    All recommendations should be reviewed before applying to production.
+  </footer>
+
+</div><!-- end page-cluster-plans -->
+
+<script>
+  // ── Page navigation ──────────────────────────────────────────────────
+  function showPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.page-nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+  // ── Cluster tab navigation ────────────────────────────────────────────
+  function showCluster(id, btn) {
+    document.querySelectorAll('.cluster-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.cluster-tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+  // ── Findings helpers ─────────────────────────────────────────────────
+  function toggleCard(card) {
+    card.classList.toggle('open');
+    updateCount();
+  }
+  function expandAll() {
+    document.querySelectorAll('.finding-card.has-snippet:not([style*="none"])').forEach(c => c.classList.add('open'));
+  }
+  function collapseAll() {
+    document.querySelectorAll('.finding-card').forEach(c => c.classList.remove('open'));
+  }
+  function copyCode(btn, e) {
+    e.stopPropagation();
+    const pre = btn.closest('.snippet-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.textContent).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+  function filterCards() {
+    const search = document.getElementById('search').value.toLowerCase();
+    const cat = document.getElementById('catFilter').value;
+    const risk = document.getElementById('riskFilter').value;
+    document.querySelectorAll('.finding-card').forEach(card => {
+      const ms = !search || card.dataset.search.includes(search);
+      const mc = !cat || card.dataset.category === cat;
+      const mr = !risk || card.dataset.risk === risk;
+      card.style.display = (ms && mc && mr) ? '' : 'none';
+    });
+    updateCount();
+  }
+  function updateCount() {
+    const visible = document.querySelectorAll('.finding-card:not([style*="none"])').length;
+    const total = document.querySelectorAll('.finding-card').length;
+    document.getElementById('visibleCount').textContent = `— ${visible} of ${total} shown`;
+  }
+  updateCount();
+  function updateReportGreeting() {
+    const hr = new Date().getHours();
+    let greet = "Good evening";
+    if (hr >= 5 && hr < 12) greet = "Good morning";
+    else if (hr >= 12 && hr < 17) greet = "Good afternoon";
+    else if (hr >= 17 && hr < 22) greet = "Good evening";
+    const el = document.getElementById("dynamic-greeting");
+    if (el) el.textContent = greet;
+  }
+  updateReportGreeting();
+  const cards = [...document.querySelectorAll('.finding-card.has-snippet')];
+  cards.slice(0, 3).forEach(c => c.classList.add('open'));
+  // Check URL hash for direct linking to cluster plans
+  if (window.location.hash === '#cluster-plans') {
+    const btn = document.querySelector('.page-nav-btn:nth-child(2)');
+    if (btn) showPage('cluster-plans', btn);
+  }
+</script>
+</body>
+</html>

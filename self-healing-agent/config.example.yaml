@@ -1,0 +1,49 @@
+# Kubernetes Self-Healing Agent Configuration
+# Configures watched namespaces, dependency chains, and automated recovery actions.
+
+# Target namespaces to monitor
+watch_namespaces:
+  - dev
+  - default
+
+# Checking frequency (in seconds)
+check_interval_seconds: 30
+
+# Dependency chains (Upstream services that must be running/healthy before downstream services)
+dependency_chains:
+  - upstream:
+      name_pattern: "redis"
+      namespace: "dev"
+      service_port: 6379
+    downstream:
+      name_pattern: "-service" # Matches clinical-rag-service, chat-service, etc.
+      namespace: "dev"
+      auto_restart_on_upstream_recovery: true
+
+# Automated healing actions and policies
+healing_policies:
+  # Pods stuck in "Pending" state
+  pending_state:
+    max_pending_minutes: 5
+    restart_on_volume_attachment_stuck: true
+    alert_on_insufficient_resources: true
+
+  # Pods stuck in "CrashLoopBackOff" or failing readiness probes
+  crashloop_state:
+    restart_after_dependency_recovered: true
+    max_healing_restarts_per_pod_hour: 3
+
+# Interactive approval mode: If true, prompts operator before deleting/restarting pods
+interactive_approval: true
+
+# Optional AI / LLM Diagnostic Analysis
+litellm:
+  url: "https://litellm.example.com"
+  api_key: "YOUR_LITELLM_API_KEY"
+  model: "gpt-4o-mini"
+
+# Dry run mode: Set to false to allow autonomous pod cycling
+dry_run: true
+
+# Logging level (DEBUG, INFO, WARNING, ERROR)
+log_level: "INFO"
